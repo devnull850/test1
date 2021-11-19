@@ -1,18 +1,15 @@
 
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
-const char FILENAME[] = "test";
+const char FILENAME[] = "blob";
 
 void foo(void);
 
 int main(void) {
-    uint64_t entry, offset, addr;
-    short size, n;
     size_t bytes, pagesize;
     unsigned char *buf;
     void *p, *a;
@@ -23,29 +20,9 @@ int main(void) {
         exit(EXIT_FAILURE);
     }
 
-    fseek(fd, 0x18, SEEK_SET);
-    fread(&entry, 1, 8, fd);
-    fread(&addr, 1, 8, fd);
-
-    fseek(fd, 0xe, SEEK_CUR);
-    fread(&size, 1, 2, fd);
-    fread(&n, 1, 2, fd);
-
-    fseek(fd, addr - 0x3a, SEEK_CUR);
-
-    for (size_t i = 0; i < n; ++i) {
-        fseek(fd, 0x8, SEEK_CUR);
-        fread(&offset, 1, 8, fd);
-	fread(&addr, 1, 8, fd);
-
-        if (addr == entry) { break; }
-
-        fseek(fd, 0x8, SEEK_CUR);
-        fread(&bytes, 1, 8, fd);
-        fseek(fd, size - 0x28, SEEK_CUR);
-    }
-
-    fseek(fd, offset, SEEK_SET);
+    fseek(fd, 0, SEEK_END);
+    bytes = ftell(fd);
+    fseek(fd, 0, SEEK_SET);
 
     if ((buf = malloc(bytes)) == NULL) {
         fprintf(stderr, "memory allocation failed\n");
@@ -75,7 +52,6 @@ int main(void) {
     free(buf);
 
     foo();
-
 
     return EXIT_SUCCESS;
 }
