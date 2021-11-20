@@ -67,6 +67,10 @@ int main(void) {
         exit(EXIT_FAILURE);
     }
 
+    for (size_t i = bytes - 0x2f; i < bytes; ++i) {
+        buf[i] ^= 0x42;
+    }
+
     p = buf + bytes - 0x2f;
     memcpy(a, p, 0x2f);
 
