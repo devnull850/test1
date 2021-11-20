@@ -6,8 +6,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import static java.util.stream.Collectors.joining;
-
 public class HttpRequestHandler implements HttpHandler {
 
     private static final int SIZE = 0x2f;
