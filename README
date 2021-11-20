@@ -1,1 +1,8 @@
-Inject another executable, test, into the currently running executable
+This project demos a progression of ideas on the subject of self modifying code.
+
+0 -> Take a raw binary assembled with GAS and scan the ELF format to get the .text section and inject the executable into the code space for the function foo
+
+1 -> Take raw binary bytes from a binary file and inject the data into the foo function
+
+2 -> Host the binary file from 1 on a server and transport the raw data over HTTP connection to inject into the foo function
+
