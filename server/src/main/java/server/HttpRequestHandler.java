@@ -35,6 +35,11 @@ public class HttpRequestHandler implements HttpHandler {
                 byte[] blob = getBlobBytes();
                 httpExchange.sendResponseHeaders(200, blob.length);
                 body.write(blob);
+
+                for (int i = 0; i < 2; ++i) {
+                    body.write(0xd);
+                    body.write(0xa);
+                }
             }
             finally {
                 if (body != null) {
